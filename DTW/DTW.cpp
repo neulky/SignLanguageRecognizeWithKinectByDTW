@@ -134,7 +134,7 @@ int DTWOptimalPath(point * M,int I,point * T,int J ,point * module,float thresho
 		temp.y /= (ntemp);
 		module[i].x = (M[i].x * turn + temp.x) / (turn + 1);/*注意这里的权值*/
 		module[i].y = (M[i].y * turn + temp.y) / (turn + 1);
-		cout << "(" << module[i].x << "," << module[i].y << ")" << endl;
+		//cout << "(" << module[i].x << "," << module[i].y << ")" << endl;   输出更新后模板的数据
 	}
 	DTWUpdataModule(module, I);
 	for (int i = I-1; i >= 0; i--)
@@ -173,21 +173,8 @@ int DTWUpdataModule(point * new_module, int newModuleFrameNum)
 		}
 		moduleDataStr += '@';
 	}
-	/*for (int i = 0; i < newModuleFrameNum; i++)
-	{
-		for (int j = 0; j < POINT_NUM_EACH_FRAME; j++)
-		{
-			switch (j)
-			{
-			case 0: moduleData[count++] = new_module[i].x; moduleData[count++] = ','; break;
-			case 1: moduleData[count++] = new_module[i].y; break;
-			default:
-				break;
-			}
-		}
-		moduleData[count++] = '@';*/
 
-	cout << moduleDataStr << endl;
+	//cout << moduleDataStr << endl;
 
 	outfile << moduleDataStr;
 

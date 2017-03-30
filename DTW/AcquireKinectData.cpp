@@ -70,7 +70,7 @@ int AcquireKinectData(point * kinectDataPoint)
 		kinectDataPoint[frameCount].y = rightHandPosition.y;
 		frameCount++;
 
-		if (frameCount >= 10)
+		if (frameCount >= 30)
 			break;
 	}
 

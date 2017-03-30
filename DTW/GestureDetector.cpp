@@ -14,12 +14,12 @@ string recognize(point* source_data,int sourceFrameNum)
 	int acquireModuleData();
 	int frameNum = acquireModuleData(); 
 	float distance;
-	cout << "+++++++++++++++++++++++++++++++++++++++++" << endl;
-	for (int i = 0; i < sourceFrameNum; i++)    //测试输出源数据
+	
+	/*for (int i = 0; i < sourceFrameNum; i++)    //测试输出源数据
 	{
 		cout << "(" << source_data[i].x << "," << source_data[i].y << ")" << endl;
-	}
-	//cout << frameNum << "==" << sourceFrameNum << endl;
+	}*/
+
 	distance = DTWDistanceFun(module_point, frameNum, source_data, sourceFrameNum);
 	cout << distance << endl;
 	DTWOptimalPath(module_point, frameNum, source_data, sourceFrameNum, DTW_Module, 10000.0, 1);
@@ -74,10 +74,10 @@ int acquireModuleData()
 			}
 		}
 	}
-	for (int i = 0; i < frameNum; i++)       //测试输出模板数据
+	/*for (int i = 0; i < frameNum; i++)       //测试输出模板数据
 	{
 		cout << "(" << module_point[i].x << "," << module_point[i].y << ")" << endl;
-	}
+	}*/
 
 	infile.close();
 
