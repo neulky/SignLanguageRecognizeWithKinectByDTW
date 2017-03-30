@@ -20,7 +20,7 @@ string recognize(point* source_data,int sourceFrameNum)
 		cout << "(" << source_data[i].x << "," << source_data[i].y << ")" << endl;
 	}*/
 
-	distance = DTWDistanceFun(module_point, frameNum, source_data, sourceFrameNum);
+	distance = DTWDistanceFun(module_point, frameNum, source_data, sourceFrameNum,MATCHRANGE);
 	cout << distance << endl;
 	DTWOptimalPath(module_point, frameNum, source_data, sourceFrameNum, DTW_Module, 10000.0, 1);
 

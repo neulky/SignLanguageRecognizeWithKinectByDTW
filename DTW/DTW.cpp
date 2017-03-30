@@ -11,10 +11,10 @@ int  dtw_path[DTWMAXNUM][DTWMAXNUM];
 float  dtw_distance[DTWMAXNUM][DTWMAXNUM];
 float dtw_middle_matrix[DTWMAXNUM][DTWMAXNUM];
 
-float DTWDistanceFun(point * a, int I, point * b, int J)   //通过DTW算法计算最短路径
-{
+float DTWDistanceFun(point * a, int I, point * b, int J,int r)   //通过DTW算法计算最短路径
+{                                                                //r为匹配窗口大小  a为模板数据点指针 b为待测数据点指针
 	memset(dtw_distance, 0, sizeof(dtw_distance));
-	memset(dtw_middle_matrix, 0, sizeof(dtw_middle_matrix));
+	memset(dtw_middle_matrix, DTWVERYBIG, sizeof(dtw_middle_matrix));
 
 	for (int i = 0; i < I; i++)
 	{
@@ -34,22 +34,31 @@ float DTWDistanceFun(point * a, int I, point * b, int J)   //通过DTW算法计算最短
 		cout << endl;
 	}*/
 
+	int r2 = r + ABS(I - J);      //匹配距离   注意r2的值 不能越界 必须小于I J
 
 	dtw_middle_matrix[0][0] = dtw_distance[0][0];
 
-	for (int i = 1; i < I; i++)
+	for (int i = 1; i < r2; i++)
 	{
 		dtw_middle_matrix[i][0] = dtw_middle_matrix[i - 1][0] + dtw_distance[i][0];
 	}
-	for (int j = 1; j < J; j++)
+	for (int j = 1; j < r2; j++)
 	{
 		dtw_middle_matrix[0][j] = dtw_middle_matrix[0][j - 1] + dtw_distance[0][j];
 	}
 
 	float d1, d2, d3;
-	for (int i = 1; i < I; i++)
+	int istart, imax;
+	for (int j = 1; j < J; j++)
 	{
-		for (int j = 1; j < J; j++)
+		istart = j - r2;
+		if (j <= r2)
+			istart = 1;
+		imax = j + r2;
+		if (imax >= I)
+			imax = I - 1;
+
+		for (int i = istart; i <= imax; i++)
 		{
 			d1 = dtw_middle_matrix[i - 1][j - 1] + 2 * dtw_distance[i][j];
 			d2 = dtw_middle_matrix[i][j - 1] + dtw_distance[i][j];
@@ -72,13 +81,13 @@ float DTWDistanceFun(point * a, int I, point * b, int J)   //通过DTW算法计算最短
 
 int DTWOptimalPath(point * M,int I,point * T,int J ,point * module,float threshold,int turn) //寻找并显示最短路径 生成最新模板
 {
-	float DTWDistanceFun(point * a, int I, point * b, int J);
+	float DTWDistanceFun(point * a, int I, point * b, int J,int r);
 	int DTWUpdataModule(point * new_module, int newModuleFrameNum);
 
 	float dist;
 	int i, j;
 	int pathsig = 1;
-	dist = DTWDistanceFun(M, I, T, J);
+	dist = DTWDistanceFun(M, I, T, J,MATCHRANGE);
 	if (dist>threshold){
 		printf("\nSample doesn't match!\n");
 		return -1;
