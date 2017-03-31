@@ -7,16 +7,22 @@
 using namespace std;
 using namespace cv;
 
-void getDepthImage(HANDLE &depthEvent, HANDLE &depthStreamHandle, Mat &depthImage);
+void getDepthImage(HANDLE &depthEvent, HANDLE &depthStreamHandle, Mat &depthImage, Mat &fullDepthImage);
+
 CvPoint extrudeRightHandPosition(HANDLE &skeletonEvent);
-CvPoint rightHandPosition;
+CvPoint RightHandPosition;
 
 
 int AcquireKinectData(point * kinectDataPoint)
 {
 
-	Mat depthImage;
+	Mat depthImage;            //œ‘ æ ÷≤øπÏº£ÕºœÒ
 	depthImage.create(240, 320, CV_8UC3);
+	Mat fullDepthImage;        //œ‘ æ’˚∏ˆ…Ó∂»ÕºœÒ
+	fullDepthImage.create(240, 320, CV_8UC3);
+
+	namedWindow("RightHandTrack", CV_WINDOW_AUTOSIZE);
+	namedWindow("FullDepthImage", CV_WINDOW_AUTOSIZE);
 
 	HANDLE depthEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 	HANDLE skeletonEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -46,32 +52,34 @@ int AcquireKinectData(point * kinectDataPoint)
 		return hr;
 	}
 
-	namedWindow("RightHandTrack", CV_WINDOW_AUTOSIZE);
-
 	int frameCount = 0;
 	while (1)
 	{
 		if (WaitForSingleObject(skeletonEvent, INFINITE) == 0)
-			rightHandPosition = extrudeRightHandPosition(skeletonEvent);
-		cout << "(" << rightHandPosition.x << "," << rightHandPosition.y << ")" << endl;
+			RightHandPosition = extrudeRightHandPosition(skeletonEvent);
+		//cout << "(" << RightHandPosition.x << "," << RightHandPosition.y << ")" << endl;
 
 		if (WaitForSingleObject(depthEvent, 0) == 0)
-			getDepthImage(depthEvent, depthStreamHandle, depthImage);
+		{
+			getDepthImage(depthEvent, depthStreamHandle, depthImage, fullDepthImage);
+		}
 
 		imshow("RightHandTrack", depthImage);
+		imshow("FullDepthImage", fullDepthImage);
 
-		if (cvWaitKey(1) == 27)      //¥Œ∫Ø ˝Œ™µ»¥˝∫Ø ˝£¨¥˝øº≤È
+		if (cvWaitKey(1) == 27)      //¥À∫Ø ˝Œ™µ»¥˝∫Ø ˝£¨¥˝øº≤È
 			break;
 
-		if (rightHandPosition.x == 0 && rightHandPosition.y == 0)   //¥”’“µΩ ÷≤ø◊¯±Íø™ ºº«¬º ˝æ›
+		if (RightHandPosition.x == 0 && RightHandPosition.y == 0)   //¥”’“µΩ ÷≤ø◊¯±Íø™ ºº«¬º ˝æ›
 			continue;
 
-		kinectDataPoint[frameCount].x = rightHandPosition.x;
-		kinectDataPoint[frameCount].y = rightHandPosition.y;
+		kinectDataPoint[frameCount].x = RightHandPosition.x;
+		kinectDataPoint[frameCount].y = RightHandPosition.y;
 		frameCount++;
 
 		if (frameCount >= 30)
 			break;
+	
 	}
 
 	NuiShutdown();
@@ -79,7 +87,7 @@ int AcquireKinectData(point * kinectDataPoint)
 
 }
 
-void getDepthImage(HANDLE &depthEvent, HANDLE &depthStreamHandle, Mat &depthImage)  //‘⁄…Ó∂»Õº÷–œ‘ æ ÷µƒŒª÷√£¨Õ®π˝∂‡∏ˆ÷°◊Ó÷’¡¨≥…“ª∏ˆ‘À∂ØπÏº£
+void getDepthImage(HANDLE &depthEvent, HANDLE &depthStreamHandle, Mat &depthImage, Mat &fullDepthImage)  //‘⁄…Ó∂»Õº÷–œ‘ æ ÷µƒŒª÷√£¨Õ®π˝∂‡∏ˆ÷°◊Ó÷’¡¨≥…“ª∏ˆ‘À∂ØπÏº£
 {
 	const NUI_IMAGE_FRAME *depthFrame = NULL;
 
@@ -93,14 +101,14 @@ void getDepthImage(HANDLE &depthEvent, HANDLE &depthStreamHandle, Mat &depthImag
 
 	if (LockedRect.Pitch != 0)
 	{
-
-		for (int i = ((0 > rightHandPosition.y - 3) ? 0 : (rightHandPosition.y - 3)); i < ((depthImage.rows < (rightHandPosition.y + 3)) ? depthImage.rows : (rightHandPosition.y + 3)); i++)
+		//…Ë÷√∑∂Œß
+		for (int i = ((0 > RightHandPosition.y - 3) ? 0 : (RightHandPosition.y - 3)); i < ((depthImage.rows < (RightHandPosition.y + 3)) ? depthImage.rows : (RightHandPosition.y + 3)); i++)
 		{
 			uchar *ptr = depthImage.ptr<uchar>(i);
 			uchar *pBuffer = (uchar*)(LockedRect.pBits) + i * LockedRect.Pitch;
 			USHORT *pBufferRun = (USHORT*)pBuffer;
 
-			for (int j = ((0 > rightHandPosition.x - 3) ? 0 : (rightHandPosition.x - 3)); j < ((depthImage.cols < (rightHandPosition.x + 3)) ? depthImage.cols : (rightHandPosition.x + 3)); j++)
+			for (int j = ((0 > RightHandPosition.x - 3) ? 0 : (RightHandPosition.x - 3)); j < ((depthImage.cols < (RightHandPosition.x + 3)) ? depthImage.cols : (RightHandPosition.x + 3)); j++)
 			{
 				int player = pBufferRun[j] & 7;
 				int data = (pBufferRun[j] & 0xfff8) >> 3;
@@ -153,32 +161,78 @@ void getDepthImage(HANDLE &depthEvent, HANDLE &depthStreamHandle, Mat &depthImag
 				ptr[3 * j + 2] = q.rgbRed;
 			}
 		}
-		/*for (int i = 0; i < depthImage.rows; i++)
-		{
-		uchar *ptr = depthImage.ptr<uchar>(i);
 
-		if (i < (leftHandPosition.y - 20) || i > (leftHandPosition.y + 20))
+		for (int i = 0; i<fullDepthImage.rows; i++)
 		{
-		for (int j = 0; j < depthImage.cols; j++)
+			uchar *ptr = fullDepthImage.ptr<uchar>(i);
+
+			for (int j = 0; j<fullDepthImage.cols; j++)
+			{
+				ptr[3 * j] = 100;
+				ptr[3 * j + 1] = 100;
+				ptr[3 * j + 2] = 100;
+			}
+		}
+
+		for (int i = 0; i < fullDepthImage.rows; i++)       //œ‘ æ’˚∏ˆ…Ó∂»ÕºœÒ
 		{
-		ptr[3 * j] = 255;
-		ptr[3 * j + 1] = 255;
-		ptr[3 * j + 2] = 255;
+			uchar *ptr1 = fullDepthImage.ptr<uchar>(i);
+			uchar *pBuffer1 = (uchar*)(LockedRect.pBits) + i*LockedRect.Pitch;
+			USHORT *pBufferRun1 = (USHORT *)pBuffer1;
+
+			for (int j = 0; j < fullDepthImage.cols; j++)
+			{
+				int player = pBufferRun1[j] & 7;
+				int data = (pBufferRun1[j] & 0xfff8) >> 3;
+
+				uchar imageData = 255 - (uchar)(256 * data / 0x0fff);
+				q.rgbBlue = q.rgbGreen = q.rgbRed = 0;
+
+				switch (player)
+				{
+				case 0:
+					q.rgbRed = 100;
+					q.rgbBlue = 100;
+					q.rgbGreen = 100;
+					break;
+				case 1:
+					q.rgbRed = imageData;
+					break;
+				case 2:
+					q.rgbGreen = imageData;
+					break;
+				case 3:
+					q.rgbRed = imageData / 4;
+					q.rgbGreen = q.rgbRed * 4;  //’‚¿Ô¿˚”√≥Àµƒ∑Ω∑®£¨∂¯≤ª”√‘≠¿¥µƒ∑Ω∑®ø…“‘±‹√‚≤ª’˚≥˝µƒ«Èøˆ   
+					q.rgbBlue = q.rgbRed * 4;  //ø…“‘‘⁄∫Û√ÊµƒgetTheContour()÷–≈‰∫œ π”√£¨±‹√‚“≈¬©“ª–©«Èøˆ   
+					break;
+				case 4:
+					q.rgbBlue = imageData / 4;
+					q.rgbRed = q.rgbBlue * 4;
+					q.rgbGreen = q.rgbBlue * 4;
+					break;
+				case 5:
+					q.rgbGreen = imageData / 4;
+					q.rgbRed = q.rgbGreen * 4;
+					q.rgbBlue = q.rgbGreen * 4;
+					break;
+				case 6:
+					q.rgbRed = imageData / 2;
+					q.rgbGreen = imageData / 2;
+					q.rgbBlue = q.rgbGreen * 2;
+					break;
+				case 7:
+					q.rgbRed = 100;
+					q.rgbGreen = 100;
+					q.rgbBlue = 100;
+				}
+				ptr1[3 * j] = q.rgbBlue;
+				ptr1[3 * j + 1] = q.rgbGreen;
+				ptr1[3 * j + 2] = q.rgbRed;
+			}
 		}
-		}
-		else
-		{
-		for (int j = 0; j < depthImage.cols; j++)
-		{
-		if (j < (leftHandPosition.x - 20) || j > (leftHandPosition.x + 20))
-		{
-		ptr[3 * j] = 255;
-		ptr[3 * j + 1] = 255;
-		ptr[3 * j + 2] = 255;
-		}
-		}
-		}
-		}*/
+
+
 	}
 	else
 	{
@@ -225,13 +279,27 @@ CvPoint extrudeRightHandPosition(HANDLE &skeletonEvent)  //∑µªÿ”“ ÷‘⁄∂˛Œ¨…Ó∂»Õºœ
 		if (skeletonFrame.SkeletonData[i].eTrackingState == NUI_SKELETON_TRACKED &&
 			skeletonFrame.SkeletonData[i].eSkeletonPositionTrackingState[NUI_SKELETON_POSITION_SHOULDER_CENTER] != NUI_SKELETON_POSITION_NOT_TRACKED)
 		{
-			float fx, fy;
+			float Right_Hand_fx, Right_Hand_fy;
+			float Hip_Center_fx, Hip_Center_fy;
 
-			NuiTransformSkeletonToDepthImage(skeletonFrame.SkeletonData[i].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT], &fx, &fy);
-			rightHandPoint[i].x = (int)fx;
-			rightHandPoint[i].y = (int)fy;
-			//cout << i << " = (" << fx << "," << fy << ")" << endl;
-			flag = i;
+			NuiTransformSkeletonToDepthImage(skeletonFrame.SkeletonData[i].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT], &Right_Hand_fx, &Right_Hand_fy);
+			NuiTransformSkeletonToDepthImage(skeletonFrame.SkeletonData[i].SkeletonPositions[NUI_SKELETON_POSITION_HIP_RIGHT], &Hip_Center_fx, &Hip_Center_fy);
+			
+			if ((int)Right_Hand_fy <= (int)Hip_Center_fy)    //‘⁄’‚¿ÔΩ¯––÷°µƒÃ·»°  		                                         
+			{                                                 //µ± ÷≤øŒª÷√µ⁄“ª¥Œ≥¨π˝˜≈πÿΩ⁄ ±ø™ ºÃ·»°÷°£¨◊ˆÕÍ∂Ø◊˜£¨µ± ÷≤øµÕ”⁄˜≈πÿΩ⁄ ±Ω· ¯÷°Ã·»°
+				rightHandPoint[i].x = (int)Right_Hand_fx;
+				rightHandPoint[i].y = (int)Right_Hand_fy;
+			}
+			else                                               //ºŸ…Ëµ± ÷≤øŒª÷√µÕ”⁄˜≈πÿΩ⁄ ± ÷µƒ◊¯±ÍŒ™£®0£¨0£©
+			{
+				rightHandPoint[i].x = 0;
+				rightHandPoint[i].y = 0;
+				cout << "+++" << endl;
+			}
+			cout << "(" << rightHandPoint[i].x << "," << rightHandPoint[i].y << ")   ||";
+			cout << "(" << (int)Hip_Center_fx << "," << (int)Hip_Center_fy << ")" << endl;
+
+			flag = i;                        //¥À≥Ã–Ú÷ª∑µªÿ∏˙◊ŸµΩ◊Ó∫Û“ª∏ˆ»Àµƒ ÷µƒŒª÷√ 
 		}
 	}
 
