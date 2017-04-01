@@ -12,7 +12,7 @@ int main()
 	int kinectFrameCount;
 
 	kinectFrameCount = AcquireKinectData(kinectDataPointSeq);    //通过Kinect采集数据存入数组中
-	DTWUpdataModule(kinectDataPointSeq, kinectFrameCount);     //第一次将采到数据存入模板文件当中
+	//DTWUpdataModule(kinectDataPointSeq, kinectFrameCount);     //第一次将采到数据存入模板文件当中
 
 	recogizeResult = recognize(kinectDataPointSeq, kinectFrameCount);
 	cout << recogizeResult << endl;

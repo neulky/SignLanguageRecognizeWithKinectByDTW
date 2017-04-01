@@ -30,7 +30,7 @@ string recognize(point* source_data,int sourceFrameNum)
 
 int acquireModuleData()
 {
-	string sourceDirctory = "G://DTW_Project//DTW//DTW_Module//wave.txt";
+	string sourceDirctory = "G://GitHubKinect//SignLanguageRecognizeWithDTW//DTW_Module//wave.txt";
 	ifstream infile;
 
 	char s[1000][20][20] = {};

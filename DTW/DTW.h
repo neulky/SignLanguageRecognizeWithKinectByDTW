@@ -11,6 +11,9 @@
 #define POINT_NUM_EACH_FRAME 2 //每帧点的个数
 #define DTWVERYBIG 100000.0  //表示无穷大
 #define MATCHRANGE 10  //匹配范围
+#define LEFT_HAND_FALG 0
+#define RIGHT_HAND_FLAG 1
+#define HAND_COUNT 2
 
 #define MIN(a,b) ((a)<(b)?(a):(b))
 #define ABS(a) ((a)>0?(a):(-(a)))

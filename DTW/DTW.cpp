@@ -161,7 +161,7 @@ int DTWOptimalPath(point * M,int I,point * T,int J ,point * module,float thresho
 //将建立的模板写入文档
 int DTWUpdataModule(point * new_module, int newModuleFrameNum)
 {
-	string sourceFile = "G://DTW_Project//DTW//DTW_Module//wave.txt";
+	string sourceFile = "G://GitHubKinect//SignLanguageRecognizeWithDTW//DTW_Module//wave.txt";
 	ofstream outfile;
 	outfile.open(sourceFile);
 

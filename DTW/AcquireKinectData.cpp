@@ -7,13 +7,10 @@
 using namespace std;
 using namespace cv;
 
-void getDepthImage(HANDLE &depthEvent, HANDLE &depthStreamHandle, Mat &depthImage, Mat &fullDepthImage);
+void getDepthImage(HANDLE &depthEvent, HANDLE &depthStreamHandle, Mat &depthImage, Mat &fullDepthImage, point * HandPoint);
+int extrudeRightHandPosition(HANDLE &skeletonEvent, point * HandPoint);
 
-CvPoint extrudeRightHandPosition(HANDLE &skeletonEvent);
-CvPoint RightHandPosition;
-
-
-int AcquireKinectData(point * kinectDataPoint)
+int AcquireKinectData(point * kinectDataPoint) 
 {
 
 	Mat depthImage;            //ÏÔÊ¾ÊÖ²¿¹ì¼£Í¼Ïñ
@@ -53,15 +50,17 @@ int AcquireKinectData(point * kinectDataPoint)
 	}
 
 	int frameCount = 0;
+	int startFlag = 0;   //¿ªÊ¼±êÖ¾  µ±¿ªÊ¼¼ÇÂ¼Ö¡Ê±£¬startFlagÖÃÎª1£»µ±ÔÙ´Î³öÏÖÊÖ²¿×ø±êÎª£¨0£¬0£©ÇÒstartFlag=1Ê±£¬½áÊø¼ÇÂ¼
+	point  HandPosition[HAND_COUNT] = {};
 	while (1)
 	{
 		if (WaitForSingleObject(skeletonEvent, INFINITE) == 0)
-			RightHandPosition = extrudeRightHandPosition(skeletonEvent);
+			extrudeRightHandPosition(skeletonEvent, HandPosition);      //ĞŞ¸ÄÊı×éHandPosition,¼°ĞŞ¸Ä×óÓÒÊÖ×ø±ê
 		//cout << "(" << RightHandPosition.x << "," << RightHandPosition.y << ")" << endl;
 
 		if (WaitForSingleObject(depthEvent, 0) == 0)
 		{
-			getDepthImage(depthEvent, depthStreamHandle, depthImage, fullDepthImage);
+			getDepthImage(depthEvent, depthStreamHandle, depthImage, fullDepthImage, HandPosition);   //ÏÔÊ¾×óÓÒÊÖ×ø±ê
 		}
 
 		imshow("RightHandTrack", depthImage);
@@ -70,15 +69,19 @@ int AcquireKinectData(point * kinectDataPoint)
 		if (cvWaitKey(1) == 27)      //´Ëº¯ÊıÎªµÈ´ıº¯Êı£¬´ı¿¼²é
 			break;
 
-		if (RightHandPosition.x == 0 && RightHandPosition.y == 0)   //´ÓÕÒµ½ÊÖ²¿×ø±ê¿ªÊ¼¼ÇÂ¼Êı¾İ
-			continue;
-
-		kinectDataPoint[frameCount].x = RightHandPosition.x;
-		kinectDataPoint[frameCount].y = RightHandPosition.y;
-		frameCount++;
-
-		if (frameCount >= 30)
+		if (HandPosition[RIGHT_HAND_FLAG].x == 0 && HandPosition[RIGHT_HAND_FLAG].y == 0 && startFlag == 1)
 			break;
+
+		if (HandPosition[RIGHT_HAND_FLAG].x == 0 && HandPosition[RIGHT_HAND_FLAG].y == 0 && startFlag == 0)    //ÒÔÓÒÊÖÎª»ù×¼ µ±ÓÒÊÖ²¿Î»ÖÃµÚÒ»´Î³¬¹ı÷Å¹Ø½ÚÊ±¿ªÊ¼ÌáÈ¡Ö¡£¬×öÍê¶¯×÷£¬µ±ÊÖ²¿µÍÓÚ÷Å¹Ø½ÚÊ±½áÊøÖ¡ÌáÈ¡
+			continue;
+		else{
+			startFlag = 1;
+			kinectDataPoint[frameCount].x = HandPosition[RIGHT_HAND_FLAG].x;
+			kinectDataPoint[frameCount].y = HandPosition[RIGHT_HAND_FLAG].y;
+			cout << "(" << kinectDataPoint[frameCount].x << "," << kinectDataPoint[frameCount].y << ")" << endl;
+			frameCount++;
+		}
+		
 	
 	}
 
@@ -87,7 +90,7 @@ int AcquireKinectData(point * kinectDataPoint)
 
 }
 
-void getDepthImage(HANDLE &depthEvent, HANDLE &depthStreamHandle, Mat &depthImage, Mat &fullDepthImage)  //ÔÚÉî¶ÈÍ¼ÖĞÏÔÊ¾ÊÖµÄÎ»ÖÃ£¬Í¨¹ı¶à¸öÖ¡×îÖÕÁ¬³ÉÒ»¸öÔË¶¯¹ì¼£
+void getDepthImage(HANDLE &depthEvent, HANDLE &depthStreamHandle, Mat &depthImage, Mat &fullDepthImage, point * HandPoint)  //ÔÚÉî¶ÈÍ¼ÖĞÏÔÊ¾ÊÖµÄÎ»ÖÃ£¬Í¨¹ı¶à¸öÖ¡×îÖÕÁ¬³ÉÒ»¸öÔË¶¯¹ì¼£
 {
 	const NUI_IMAGE_FRAME *depthFrame = NULL;
 
@@ -102,13 +105,13 @@ void getDepthImage(HANDLE &depthEvent, HANDLE &depthStreamHandle, Mat &depthImag
 	if (LockedRect.Pitch != 0)
 	{
 		//ÉèÖÃ·¶Î§
-		for (int i = ((0 > RightHandPosition.y - 3) ? 0 : (RightHandPosition.y - 3)); i < ((depthImage.rows < (RightHandPosition.y + 3)) ? depthImage.rows : (RightHandPosition.y + 3)); i++)
+		for (int i = ((0 > int(HandPoint[RIGHT_HAND_FLAG].y - 3)) ? 0 : int(HandPoint[RIGHT_HAND_FLAG].y - 3)); i < ((depthImage.rows < int(HandPoint[RIGHT_HAND_FLAG].y + 3)) ? depthImage.rows : int(HandPoint[RIGHT_HAND_FLAG].y + 3)); i++)
 		{
 			uchar *ptr = depthImage.ptr<uchar>(i);
 			uchar *pBuffer = (uchar*)(LockedRect.pBits) + i * LockedRect.Pitch;
 			USHORT *pBufferRun = (USHORT*)pBuffer;
 
-			for (int j = ((0 > RightHandPosition.x - 3) ? 0 : (RightHandPosition.x - 3)); j < ((depthImage.cols < (RightHandPosition.x + 3)) ? depthImage.cols : (RightHandPosition.x + 3)); j++)
+			for (int j = ((0 > int(HandPoint[RIGHT_HAND_FLAG].x - 3)) ? 0 : int(HandPoint[RIGHT_HAND_FLAG].x - 3)); j < ((depthImage.cols < int(HandPoint[RIGHT_HAND_FLAG].x + 3)) ? depthImage.cols : int(HandPoint[RIGHT_HAND_FLAG].x + 3)); j++)
 			{
 				int player = pBufferRun[j] & 7;
 				int data = (pBufferRun[j] & 0xfff8) >> 3;
@@ -162,7 +165,67 @@ void getDepthImage(HANDLE &depthEvent, HANDLE &depthStreamHandle, Mat &depthImag
 			}
 		}
 
-		for (int i = 0; i<fullDepthImage.rows; i++)
+		for (int i = ((0 > int(HandPoint[LEFT_HAND_FALG].y - 3)) ? 0 : int(HandPoint[LEFT_HAND_FALG].y - 3)); i < ((depthImage.rows < int(HandPoint[LEFT_HAND_FALG].y + 3)) ? depthImage.rows : int(HandPoint[LEFT_HAND_FALG].y + 3)); i++)
+		{
+			uchar *ptr = depthImage.ptr<uchar>(i);
+			uchar *pBuffer = (uchar*)(LockedRect.pBits) + i * LockedRect.Pitch;
+			USHORT *pBufferRun = (USHORT*)pBuffer;
+
+			for (int j = ((0 > int(HandPoint[LEFT_HAND_FALG].x - 3)) ? 0 : int(HandPoint[LEFT_HAND_FALG].x - 3)); j < ((depthImage.cols < int(HandPoint[LEFT_HAND_FALG].x + 3)) ? depthImage.cols : int(HandPoint[LEFT_HAND_FALG].x + 3)); j++)
+			{
+				int player = pBufferRun[j] & 7;
+				int data = (pBufferRun[j] & 0xfff8) >> 3;
+
+				uchar imageData = 255 - (uchar)(256 * data / 0x0fff);
+				q.rgbBlue = q.rgbGreen = q.rgbRed = 0;
+
+
+				switch (player)
+
+				{
+				case 0:
+					q.rgbRed = 100;
+					q.rgbBlue = 100;
+					q.rgbGreen = 100;
+					break;
+				case 1:
+					q.rgbRed = imageData;
+					break;
+				case 2:
+					q.rgbGreen = imageData;
+					break;
+				case 3:
+					q.rgbRed = imageData / 4;
+					q.rgbGreen = q.rgbRed * 4;  //ÕâÀïÀûÓÃ³ËµÄ·½·¨£¬¶ø²»ÓÃÔ­À´µÄ·½·¨¿ÉÒÔ±ÜÃâ²»Õû³ıµÄÇé¿ö   
+					q.rgbBlue = q.rgbRed * 4;  //¿ÉÒÔÔÚºóÃæµÄgetTheContour()ÖĞÅäºÏÊ¹ÓÃ£¬±ÜÃâÒÅÂ©Ò»Ğ©Çé¿ö   
+					break;
+				case 4:
+					q.rgbBlue = imageData / 4;
+					q.rgbRed = q.rgbBlue * 4;
+					q.rgbGreen = q.rgbBlue * 4;
+					break;
+				case 5:
+					q.rgbGreen = imageData / 4;
+					q.rgbRed = q.rgbGreen * 4;
+					q.rgbBlue = q.rgbGreen * 4;
+					break;
+				case 6:
+					q.rgbRed = imageData / 2;
+					q.rgbGreen = imageData / 2;
+					q.rgbBlue = q.rgbGreen * 2;
+					break;
+				case 7:
+					q.rgbRed = 100;
+					q.rgbGreen = 100;
+					q.rgbBlue = 100;
+				}
+				ptr[3 * j] = q.rgbBlue;
+				ptr[3 * j + 1] = q.rgbGreen;
+				ptr[3 * j + 2] = q.rgbRed;
+			}
+		}
+
+		for (int i = 0; i<fullDepthImage.rows; i++)         //Ã¿´Î¶¼¶ÔfullDepthImage»­²¼½øĞĞ¸üĞÂ
 		{
 			uchar *ptr = fullDepthImage.ptr<uchar>(i);
 
@@ -243,7 +306,7 @@ void getDepthImage(HANDLE &depthEvent, HANDLE &depthStreamHandle, Mat &depthImag
 	NuiImageStreamReleaseFrame(depthStreamHandle, depthFrame);
 }
 
-CvPoint extrudeRightHandPosition(HANDLE &skeletonEvent)  //·µ»ØÓÒÊÖÔÚ¶şÎ¬Éî¶ÈÍ¼ÏñÖĞµÄÎ»ÖÃ
+int extrudeRightHandPosition(HANDLE &skeletonEvent, point * HandPoint)  //Í¨¹ıHandPointÖ¸Õë ĞŞ¸Ä´«ÈëµÄÊı×é¼°ĞŞ¸Ä×óÓÒÊÖµÄÎ»ÖÃ×ø±ê 
 {
 	NUI_SKELETON_FRAME skeletonFrame = { 0 };
 	bool bFoundSkeleton = false;
@@ -272,7 +335,9 @@ CvPoint extrudeRightHandPosition(HANDLE &skeletonEvent)  //·µ»ØÓÒÊÖÔÚ¶şÎ¬Éî¶ÈÍ¼Ï
 
 	NuiTransformSmooth(&skeletonFrame, NULL);//Æ½»¬¹Ç÷ÀÖ¡,Ïû³ı¶¶¶¯     
 
-	CvPoint rightHandPoint[NUI_SKELETON_COUNT] = { cvPoint(0, 0) };
+	point rightHandPoint[NUI_SKELETON_COUNT] = {};
+	point leftHandPoint[NUI_SKELETON_COUNT] = {}; 
+
 	int flag = 0;
 	for (int i = 0; i < NUI_SKELETON_COUNT; i++)
 	{
@@ -280,28 +345,38 @@ CvPoint extrudeRightHandPosition(HANDLE &skeletonEvent)  //·µ»ØÓÒÊÖÔÚ¶şÎ¬Éî¶ÈÍ¼Ï
 			skeletonFrame.SkeletonData[i].eSkeletonPositionTrackingState[NUI_SKELETON_POSITION_SHOULDER_CENTER] != NUI_SKELETON_POSITION_NOT_TRACKED)
 		{
 			float Right_Hand_fx, Right_Hand_fy;
+			float Left_Hand_fx, Left_Hand_fy;
 			float Hip_Center_fx, Hip_Center_fy;
 
 			NuiTransformSkeletonToDepthImage(skeletonFrame.SkeletonData[i].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT], &Right_Hand_fx, &Right_Hand_fy);
+			NuiTransformSkeletonToDepthImage(skeletonFrame.SkeletonData[i].SkeletonPositions[NUI_SKELETON_POSITION_HAND_LEFT], &Left_Hand_fx, &Left_Hand_fy);
 			NuiTransformSkeletonToDepthImage(skeletonFrame.SkeletonData[i].SkeletonPositions[NUI_SKELETON_POSITION_HIP_RIGHT], &Hip_Center_fx, &Hip_Center_fy);
 			
-			if ((int)Right_Hand_fy <= (int)Hip_Center_fy)    //ÔÚÕâÀï½øĞĞÖ¡µÄÌáÈ¡  		                                         
-			{                                                 //µ±ÊÖ²¿Î»ÖÃµÚÒ»´Î³¬¹ı÷Å¹Ø½ÚÊ±¿ªÊ¼ÌáÈ¡Ö¡£¬×öÍê¶¯×÷£¬µ±ÊÖ²¿µÍÓÚ÷Å¹Ø½ÚÊ±½áÊøÖ¡ÌáÈ¡
-				rightHandPoint[i].x = (int)Right_Hand_fx;
-				rightHandPoint[i].y = (int)Right_Hand_fy;
+			if (Right_Hand_fy <= Hip_Center_fy)    //ÔÚÕâÀï½øĞĞÖ¡µÄÌáÈ¡   		                                         
+			{                                                //µ±ÊÖ²¿Î»ÖÃ³¬¹ı÷Å¹Ø½ÚÊ±£¬¼ÇÂ¼ÊÖ²¿Î»ÖÃ×ø±ê	                                           
+				rightHandPoint[i].x = Right_Hand_fx;    
+				rightHandPoint[i].y = Right_Hand_fy;
+				leftHandPoint[i].x = Left_Hand_fx;
+				leftHandPoint[i].y = Left_Hand_fy;
 			}
-			else                                               //¼ÙÉèµ±ÊÖ²¿Î»ÖÃµÍÓÚ÷Å¹Ø½ÚÊ±ÊÖµÄ×ø±êÎª£¨0£¬0£©
+			else                                               //µ±ÊÖ²¿Î»ÖÃµÍÓÚ÷Å¹Ø½ÚÊ±£¬½«ÊÖ²¿Î»ÖÃ×ø±ê¼ÇÎª£¨0£¬0£©          ¼ÙÉèµ±ÊÖ²¿Î»ÖÃµÍÓÚ÷Å¹Ø½ÚÊ±ÊÖµÄ×ø±êÎª£¨0£¬0£©
 			{
 				rightHandPoint[i].x = 0;
 				rightHandPoint[i].y = 0;
-				cout << "+++" << endl;
+				leftHandPoint[i].x = 0;
+				leftHandPoint[i].y = 0;
 			}
-			cout << "(" << rightHandPoint[i].x << "," << rightHandPoint[i].y << ")   ||";
-			cout << "(" << (int)Hip_Center_fx << "," << (int)Hip_Center_fy << ")" << endl;
+			//cout << "(" << rightHandPoint[i].x << "," << rightHandPoint[i].y << ")   ||";
+			//cout << "(" << (int)Hip_Center_fx << "," << (int)Hip_Center_fy << ")" << endl;
 
 			flag = i;                        //´Ë³ÌĞòÖ»·µ»Ø¸ú×Ùµ½×îºóÒ»¸öÈËµÄÊÖµÄÎ»ÖÃ 
 		}
 	}
 
-	return rightHandPoint[flag];
+	HandPoint[LEFT_HAND_FALG].x = leftHandPoint[flag].x;
+	HandPoint[LEFT_HAND_FALG].y = leftHandPoint[flag].y;
+	HandPoint[RIGHT_HAND_FLAG].x = rightHandPoint[flag].x;
+	HandPoint[RIGHT_HAND_FLAG].y = rightHandPoint[flag].y;
+
+	return 1;
 }
