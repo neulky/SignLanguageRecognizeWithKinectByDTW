@@ -3,6 +3,6 @@
 
 #include"DTW.h"
 
-int AcquireKinectData(point * kinectDataPoint);
+int AcquireKinectData(point kinectDataPoint[][MAXFRAME], int* kinectFrameCount);
 
 #endif // !ACQUIREKINECTDATA_H

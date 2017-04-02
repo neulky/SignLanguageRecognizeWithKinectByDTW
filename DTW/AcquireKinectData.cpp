@@ -10,13 +10,21 @@ using namespace cv;
 void getDepthImage(HANDLE &depthEvent, HANDLE &depthStreamHandle, Mat &depthImage, Mat &fullDepthImage, point * HandPoint);
 int extrudeRightHandPosition(HANDLE &skeletonEvent, point * HandPoint);
 
-int AcquireKinectData(point * kinectDataPoint) 
+/********************************************************************
+*函数功能：通过Kinect采集左右手的位置
+*handCount 手的数量，目前为2，左手和右手
+*kinectDataPoint[][] 二维数组，记录左右手的位置
+*********************************************************************/
+int AcquireKinectData(point kinectDataPoint[][MAXFRAME], int* kinectFrameCount) 
 {
 
 	Mat depthImage;            //显示手部轨迹图像
 	depthImage.create(240, 320, CV_8UC3);
 	Mat fullDepthImage;        //显示整个深度图像
 	fullDepthImage.create(240, 320, CV_8UC3);
+
+	kinectFrameCount[LEFT_HAND_FLAG] = 0;
+	kinectFrameCount[RIGHT_HAND_FLAG] = 0;
 
 	namedWindow("RightHandTrack", CV_WINDOW_AUTOSIZE);
 	namedWindow("FullDepthImage", CV_WINDOW_AUTOSIZE);
@@ -49,8 +57,8 @@ int AcquireKinectData(point * kinectDataPoint)
 		return hr;
 	}
 
-	int frameCount = 0;
-	int startFlag = 0;   //开始标志  当开始记录帧时，startFlag置为1；当再次出现手部坐标为（0，0）且startFlag=1时，结束记录
+	int leftStartFlag = 0;   //开始标志  当开始记录帧时，startFlag置为1；当再次出现手部坐标为（0，0）且startFlag=1时，结束记录
+	int rightStartFlag = 0;
 	point  HandPosition[HAND_COUNT] = {};
 	while (1)
 	{
@@ -69,24 +77,45 @@ int AcquireKinectData(point * kinectDataPoint)
 		if (cvWaitKey(1) == 27)      //此函数为等待函数，待考查
 			break;
 
-		if (HandPosition[RIGHT_HAND_FLAG].x == 0 && HandPosition[RIGHT_HAND_FLAG].y == 0 && startFlag == 1)
+		if (HandPosition[RIGHT_HAND_FLAG].x == 0 && HandPosition[RIGHT_HAND_FLAG].y == 0 &&
+			HandPosition[LEFT_HAND_FLAG].x == 0 && HandPosition[LEFT_HAND_FLAG].y == 0 && (rightStartFlag == 1 || leftStartFlag ==1))    //两只手同时都在下面，且曾经有一只手上去过
 			break;
 
-		if (HandPosition[RIGHT_HAND_FLAG].x == 0 && HandPosition[RIGHT_HAND_FLAG].y == 0 && startFlag == 0)    //以右手为基准 当右手部位置第一次超过髋关节时开始提取帧，做完动作，当手部低于髋关节时结束帧提取
-			continue;
-		else{
-			startFlag = 1;
-			kinectDataPoint[frameCount].x = HandPosition[RIGHT_HAND_FLAG].x;
-			kinectDataPoint[frameCount].y = HandPosition[RIGHT_HAND_FLAG].y;
-			cout << "(" << kinectDataPoint[frameCount].x << "," << kinectDataPoint[frameCount].y << ")" << endl;
-			frameCount++;
+		if (HandPosition[RIGHT_HAND_FLAG].x == 0 && HandPosition[RIGHT_HAND_FLAG].y == 0 && rightStartFlag == 0)    //以右手为基准 当右手部位置第一次超过髋关节时开始提取帧，做完动作，当手部低于髋关节时结束帧提取
+		{
+
 		}
-		
-	
+		else{
+			rightStartFlag = 1;
+			if (HandPosition[RIGHT_HAND_FLAG].x != 0 && HandPosition[RIGHT_HAND_FLAG].y != 0)
+			{
+				kinectDataPoint[RIGHT_HAND_FLAG][kinectFrameCount[RIGHT_HAND_FLAG]].x = HandPosition[RIGHT_HAND_FLAG].x;
+				kinectDataPoint[RIGHT_HAND_FLAG][kinectFrameCount[RIGHT_HAND_FLAG]].y = HandPosition[RIGHT_HAND_FLAG].y;
+
+				cout <<"Right: "<< "(" << kinectDataPoint[RIGHT_HAND_FLAG][kinectFrameCount[RIGHT_HAND_FLAG]].x << "," << kinectDataPoint[RIGHT_HAND_FLAG][kinectFrameCount[RIGHT_HAND_FLAG]].y << ")" << endl;
+				kinectFrameCount[RIGHT_HAND_FLAG]++;
+			}
+		}
+		if (HandPosition[LEFT_HAND_FLAG].x == 0 && HandPosition[LEFT_HAND_FLAG].y == 0 && leftStartFlag == 0)    //以右手为基准 当右手部位置第一次超过髋关节时开始提取帧，做完动作，当手部低于髋关节时结束帧提取
+		{
+
+		}
+		else{
+			leftStartFlag = 1;
+			if (HandPosition[LEFT_HAND_FLAG].x != 0 && HandPosition[LEFT_HAND_FLAG].y != 0)
+			{
+				kinectDataPoint[LEFT_HAND_FLAG][kinectFrameCount[LEFT_HAND_FLAG]].x = HandPosition[LEFT_HAND_FLAG].x;
+				kinectDataPoint[LEFT_HAND_FLAG][kinectFrameCount[LEFT_HAND_FLAG]].y = HandPosition[LEFT_HAND_FLAG].y;
+
+				cout <<"Left: "<< "(" << kinectDataPoint[LEFT_HAND_FLAG][kinectFrameCount[LEFT_HAND_FLAG]].x << "," << kinectDataPoint[LEFT_HAND_FLAG][kinectFrameCount[LEFT_HAND_FLAG]].y << ")" << endl;
+				//cout << "(" << kinectDataPoint[LEFT_HAND_FLAG][frameCount].x << "," << kinectDataPoint[LEFT_HAND_FLAG][frameCount].y << ")" << endl;
+				kinectFrameCount[LEFT_HAND_FLAG]++;
+			}	
+		}
 	}
 
 	NuiShutdown();
-	return frameCount;
+	return 1;
 
 }
 
@@ -165,13 +194,13 @@ void getDepthImage(HANDLE &depthEvent, HANDLE &depthStreamHandle, Mat &depthImag
 			}
 		}
 
-		for (int i = ((0 > int(HandPoint[LEFT_HAND_FALG].y - 3)) ? 0 : int(HandPoint[LEFT_HAND_FALG].y - 3)); i < ((depthImage.rows < int(HandPoint[LEFT_HAND_FALG].y + 3)) ? depthImage.rows : int(HandPoint[LEFT_HAND_FALG].y + 3)); i++)
+		for (int i = ((0 > int(HandPoint[LEFT_HAND_FLAG].y - 3)) ? 0 : int(HandPoint[LEFT_HAND_FLAG].y - 3)); i < ((depthImage.rows < int(HandPoint[LEFT_HAND_FLAG].y + 3)) ? depthImage.rows : int(HandPoint[LEFT_HAND_FLAG].y + 3)); i++)
 		{
 			uchar *ptr = depthImage.ptr<uchar>(i);
 			uchar *pBuffer = (uchar*)(LockedRect.pBits) + i * LockedRect.Pitch;
 			USHORT *pBufferRun = (USHORT*)pBuffer;
 
-			for (int j = ((0 > int(HandPoint[LEFT_HAND_FALG].x - 3)) ? 0 : int(HandPoint[LEFT_HAND_FALG].x - 3)); j < ((depthImage.cols < int(HandPoint[LEFT_HAND_FALG].x + 3)) ? depthImage.cols : int(HandPoint[LEFT_HAND_FALG].x + 3)); j++)
+			for (int j = ((0 > int(HandPoint[LEFT_HAND_FLAG].x - 3)) ? 0 : int(HandPoint[LEFT_HAND_FLAG].x - 3)); j < ((depthImage.cols < int(HandPoint[LEFT_HAND_FLAG].x + 3)) ? depthImage.cols : int(HandPoint[LEFT_HAND_FLAG].x + 3)); j++)
 			{
 				int player = pBufferRun[j] & 7;
 				int data = (pBufferRun[j] & 0xfff8) >> 3;
@@ -338,31 +367,37 @@ int extrudeRightHandPosition(HANDLE &skeletonEvent, point * HandPoint)  //通过Ha
 	point rightHandPoint[NUI_SKELETON_COUNT] = {};
 	point leftHandPoint[NUI_SKELETON_COUNT] = {}; 
 
+	float Right_Hand_fx, Right_Hand_fy;
+	float Left_Hand_fx, Left_Hand_fy;
+	float Hip_Center_fx, Hip_Center_fy;
+
 	int flag = 0;
 	for (int i = 0; i < NUI_SKELETON_COUNT; i++)
 	{
 		if (skeletonFrame.SkeletonData[i].eTrackingState == NUI_SKELETON_TRACKED &&
 			skeletonFrame.SkeletonData[i].eSkeletonPositionTrackingState[NUI_SKELETON_POSITION_SHOULDER_CENTER] != NUI_SKELETON_POSITION_NOT_TRACKED)
 		{
-			float Right_Hand_fx, Right_Hand_fy;
-			float Left_Hand_fx, Left_Hand_fy;
-			float Hip_Center_fx, Hip_Center_fy;
-
 			NuiTransformSkeletonToDepthImage(skeletonFrame.SkeletonData[i].SkeletonPositions[NUI_SKELETON_POSITION_HAND_RIGHT], &Right_Hand_fx, &Right_Hand_fy);
 			NuiTransformSkeletonToDepthImage(skeletonFrame.SkeletonData[i].SkeletonPositions[NUI_SKELETON_POSITION_HAND_LEFT], &Left_Hand_fx, &Left_Hand_fy);
-			NuiTransformSkeletonToDepthImage(skeletonFrame.SkeletonData[i].SkeletonPositions[NUI_SKELETON_POSITION_HIP_RIGHT], &Hip_Center_fx, &Hip_Center_fy);
+			NuiTransformSkeletonToDepthImage(skeletonFrame.SkeletonData[i].SkeletonPositions[NUI_SKELETON_POSITION_HIP_CENTER], &Hip_Center_fx, &Hip_Center_fy);
 			
 			if (Right_Hand_fy <= Hip_Center_fy)    //在这里进行帧的提取   		                                         
 			{                                                //当手部位置超过髋关节时，记录手部位置坐标	                                           
 				rightHandPoint[i].x = Right_Hand_fx;    
 				rightHandPoint[i].y = Right_Hand_fy;
-				leftHandPoint[i].x = Left_Hand_fx;
-				leftHandPoint[i].y = Left_Hand_fy;
 			}
 			else                                               //当手部位置低于髋关节时，将手部位置坐标记为（0，0）          假设当手部位置低于髋关节时手的坐标为（0，0）
 			{
 				rightHandPoint[i].x = 0;
 				rightHandPoint[i].y = 0;
+			}
+			if (Left_Hand_fy <= Hip_Center_fy)
+			{
+				leftHandPoint[i].x = Left_Hand_fx;
+				leftHandPoint[i].y = Left_Hand_fy;
+			}
+			else
+			{
 				leftHandPoint[i].x = 0;
 				leftHandPoint[i].y = 0;
 			}
@@ -373,8 +408,8 @@ int extrudeRightHandPosition(HANDLE &skeletonEvent, point * HandPoint)  //通过Ha
 		}
 	}
 
-	HandPoint[LEFT_HAND_FALG].x = leftHandPoint[flag].x;
-	HandPoint[LEFT_HAND_FALG].y = leftHandPoint[flag].y;
+	HandPoint[LEFT_HAND_FLAG].x = leftHandPoint[flag].x;
+	HandPoint[LEFT_HAND_FLAG].y = leftHandPoint[flag].y;
 	HandPoint[RIGHT_HAND_FLAG].x = rightHandPoint[flag].x;
 	HandPoint[RIGHT_HAND_FLAG].y = rightHandPoint[flag].y;
 

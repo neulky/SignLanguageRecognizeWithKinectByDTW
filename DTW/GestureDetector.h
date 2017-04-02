@@ -5,7 +5,7 @@
 #include<string>
 using namespace std;
 
-string recognize(point* source_data, int sourceFrameNum);
+string recognize(point source_data[][MAXFRAME], int* sourceFrameNum);
 
 #endif // !GESTUREDETECTOR_H
 

@@ -79,11 +79,11 @@ float DTWDistanceFun(point * a, int I, point * b, int J,int r)   //通过DTW算法计
 	return dtw_middle_matrix[I-1][J-1];
 }
 
-int DTWOptimalPath(point * M,int I,point * T,int J ,point * module,float threshold,int turn) //寻找并显示最短路径 生成最新模板
+int DTWOptimalPath(point * M,int I,point * T,int J ,float threshold,int turn,int hand_flag) //寻找并显示最短路径 生成最新模板
 {
 	float DTWDistanceFun(point * a, int I, point * b, int J,int r);
-	int DTWUpdataModule(point * new_module, int newModuleFrameNum);
-
+	int DTWUpdataModule(point * new_module, int newModuleFrameNum, int hand_flag);
+	point module[MAXFRAME] = {};
 	float dist;
 	int i, j;
 	int pathsig = 1;
@@ -145,7 +145,14 @@ int DTWOptimalPath(point * M,int I,point * T,int J ,point * module,float thresho
 		module[i].y = (M[i].y * turn + temp.y) / (turn + 1);
 		//cout << "(" << module[i].x << "," << module[i].y << ")" << endl;   输出更新后模板的数据
 	}
-	DTWUpdataModule(module, I);
+	if (hand_flag == LEFT_HAND_FLAG)
+	{
+		DTWUpdataModule(module, I, LEFT_HAND_FLAG);
+	}
+	if (hand_flag == RIGHT_HAND_FLAG)
+	{
+		DTWUpdataModule(module, I, RIGHT_HAND_FLAG);
+	}
 	for (int i = I-1; i >= 0; i--)
 	{
 		for (int j = 0; j < J; j++)
@@ -158,16 +165,29 @@ int DTWOptimalPath(point * M,int I,point * T,int J ,point * module,float thresho
 	return I;
 }
 
-//将建立的模板写入文档
-int DTWUpdataModule(point * new_module, int newModuleFrameNum)
+
+/*
+* 将建立的模板写入文档
+* point * new_module 传入的最新模板
+* int newModuleFrameNum模板的帧数
+* int hand_flag 左右手标志，分别存入不同的文件夹下
+*/
+int DTWUpdataModule(point * new_module, int newModuleFrameNum, int hand_flag)
 {
-	string sourceFile = "G://GitHubKinect//SignLanguageRecognizeWithDTW//DTW_Module//wave.txt";
+	string sourceFile;
 	ofstream outfile;
+	string moduleDataStr;
+	if (hand_flag == LEFT_HAND_FLAG)
+		sourceFile = "G://GitHubKinect//SignLanguageRecognizeWithDTW//DTW_Left_Module//wave.txt";
+	else{
+		if (hand_flag == RIGHT_HAND_FLAG)
+			sourceFile = "G://GitHubKinect//SignLanguageRecognizeWithDTW//DTW_Right_Module//wave.txt";
+		else
+			return 0;
+	}
+
 	outfile.open(sourceFile);
 
-	//char moduleData[10000] = {};
-	string moduleDataStr;
-	//int count = 0;
 	for (int i = 0; i < newModuleFrameNum; i++)
 	{
 		for (int j = 0; j < POINT_NUM_EACH_FRAME; j++)
