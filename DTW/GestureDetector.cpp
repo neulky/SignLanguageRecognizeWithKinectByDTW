@@ -3,48 +3,96 @@
 #include<string>
 #include"DTW.h"
 #include"GestureDetector.h"
+#include<io.h>
 using namespace std;
 
 string recognize(point source_data[][MAXFRAME], int* sourceFrameNum)
 {
-	point left_hand_module_point[MAXFRAME] = {};
-	point right_hand_module_point[MAXFRAME] = {};
-
-	int acquireModuleData(point* module_point, int hand_flag);
-	int leftHandFrameNum = acquireModuleData(left_hand_module_point,LEFT_HAND_FLAG); 
-	int rightHandFrameNum = acquireModuleData(right_hand_module_point, RIGHT_HAND_FLAG);
-
-	float leftDistance, rightDistance;
-	float totalDistance;
-	
-	/*for (int i = 0; i < sourceFrameNum; i++)    //测试输出源数据
-	{
-		cout << "(" << source_data[i].x << "," << source_data[i].y << ")" << endl;
-	}*/
-	if (sourceFrameNum[LEFT_HAND_FLAG] == 0)
-		cout << "左手未参加该手语" << endl;
-	else
-	{
-		leftDistance = DTWDistanceFun(left_hand_module_point, leftHandFrameNum, source_data[LEFT_HAND_FLAG], sourceFrameNum[LEFT_HAND_FLAG], MATCHRANGE);  //MATCHRANGE 为匹配距离
-		DTWOptimalPath(left_hand_module_point, leftHandFrameNum, source_data[LEFT_HAND_FLAG], sourceFrameNum[LEFT_HAND_FLAG], 10000.0, 1, LEFT_HAND_FLAG);
+	int acquireModuleData(point* module_point, int hand_flag, string moduleFileName);
+	string module_file_name[MAX_MODULE_NUM];          //模板文件的文件名，及手语名称
+	int moduleFileCount = 0;
+	long Handle;
+	struct _finddata_t FileInfo;
+	/* 该段为依次读取DTW_Left_Module目录下的所有txt文件*/
+	if ((Handle = _findfirst("G:\\GitHubKinect\\SignLanguageRecognizeWithDTW\\DTW_Left_Module\\*.txt", &FileInfo)) == -1L)
+		printf("没有找到匹配的项目!\n");
+	else{
+		module_file_name[moduleFileCount] = FileInfo.name;
+		moduleFileCount++;
+		while (_findnext(Handle, &FileInfo) == 0)
+		{
+			module_file_name[moduleFileCount] = FileInfo.name;
+			moduleFileCount++;
+		}
 	}
-	
-	if (sourceFrameNum[RIGHT_HAND_FLAG] == 0)
-		cout << "右手未参加该手语" << endl;
-	else
-	{
-		rightDistance = DTWDistanceFun(right_hand_module_point, rightHandFrameNum, source_data[RIGHT_HAND_FLAG], sourceFrameNum[RIGHT_HAND_FLAG], MATCHRANGE);
-		DTWOptimalPath(right_hand_module_point, rightHandFrameNum, source_data[RIGHT_HAND_FLAG], sourceFrameNum[RIGHT_HAND_FLAG], 10000.0, 1, LEFT_HAND_FLAG);
-	}
-	
-	totalDistance = leftDistance + rightDistance;
-	cout << "最短路径距离为：" << totalDistance << endl;
+	_findclose(Handle);
 
-	return "挥手";
-	
+	float totalDistance[MAX_MODULE_NUM];
+	float minDistance = DTWVERYBIG;    //记录最小距离
+	string successModuleName;   //匹配成功的模板名称
+
+	for (int i = 0; i < moduleFileCount; i++)
+	{
+		point left_hand_module_point[MAXFRAME] = {};
+		point right_hand_module_point[MAXFRAME] = {};
+
+		int leftHandFrameNum = acquireModuleData(left_hand_module_point, LEFT_HAND_FLAG, module_file_name[i]);
+		int rightHandFrameNum = acquireModuleData(right_hand_module_point, RIGHT_HAND_FLAG, module_file_name[i]);
+
+		float leftDistance = 0, rightDistance = 0;
+
+		if (sourceFrameNum[LEFT_HAND_FLAG] == 0)
+			cout << "左手未参加该手语" << endl;
+		else
+		{
+			leftDistance = DTWDistanceFun(left_hand_module_point, leftHandFrameNum, source_data[LEFT_HAND_FLAG], sourceFrameNum[LEFT_HAND_FLAG], MATCHRANGE);  //MATCHRANGE 为匹配距离
+		}
+
+		if (sourceFrameNum[RIGHT_HAND_FLAG] == 0)
+			cout << "右手未参加该手语" << endl;
+		else
+		{
+			rightDistance = DTWDistanceFun(right_hand_module_point, rightHandFrameNum, source_data[RIGHT_HAND_FLAG], sourceFrameNum[RIGHT_HAND_FLAG], MATCHRANGE);
+		}
+
+		totalDistance[i] = leftDistance + rightDistance;
+		cout << module_file_name[i] << ": " << totalDistance[i] << endl;
+		if (minDistance >= totalDistance[i])
+		{
+			minDistance = totalDistance[i];
+			successModuleName = module_file_name[i];
+		}
+	}
+	/*该模块为训练模板*/
+	if (minDistance < MATCHTHRESHOLD) 
+	{
+		point left_hand_module_point[MAXFRAME] = {};
+		point right_hand_module_point[MAXFRAME] = {};
+
+		int leftHandFrameNum = acquireModuleData(left_hand_module_point, LEFT_HAND_FLAG, successModuleName);
+		int rightHandFrameNum = acquireModuleData(right_hand_module_point, RIGHT_HAND_FLAG, successModuleName);
+
+		if (sourceFrameNum[LEFT_HAND_FLAG] == 0)
+			cout << "左手未参加该手语" << endl;
+		else
+		{
+			DTWOptimalPath(left_hand_module_point, leftHandFrameNum, source_data[LEFT_HAND_FLAG], sourceFrameNum[LEFT_HAND_FLAG], MATCHTHRESHOLD, 1, LEFT_HAND_FLAG, successModuleName);
+		}
+
+		if (sourceFrameNum[RIGHT_HAND_FLAG] == 0)
+			cout << "右手未参加该手语" << endl;
+		else
+		{
+			DTWOptimalPath(right_hand_module_point, rightHandFrameNum, source_data[RIGHT_HAND_FLAG], sourceFrameNum[RIGHT_HAND_FLAG], MATCHTHRESHOLD, 1, RIGHT_HAND_FLAG, successModuleName);
+		}
+	}
+
+	cout << "最小匹配距离为：" << minDistance << endl;
+	cout << "识别的手势为：" << successModuleName << endl;
+	return successModuleName;
 }
 
-int acquireModuleData(point* module_point, int hand_flag)
+int acquireModuleData(point* module_point, int hand_flag, string moduleFileName)
 {
 	string sourceDirctory;
 	ifstream infile;
@@ -56,10 +104,10 @@ int acquireModuleData(point* module_point, int hand_flag)
 	int k = 0;
 
 	if (hand_flag == LEFT_HAND_FLAG)
-		sourceDirctory = "G://GitHubKinect//SignLanguageRecognizeWithDTW//DTW_Left_Module//wave.txt";
+		sourceDirctory = "G:\\GitHubKinect\\SignLanguageRecognizeWithDTW\\DTW_Left_Module\\" + moduleFileName;
 	else{
 		if (hand_flag == RIGHT_HAND_FLAG)
-			sourceDirctory = "G://GitHubKinect//SignLanguageRecognizeWithDTW//DTW_Right_Module//wave.txt";
+			sourceDirctory = "G:\\GitHubKinect\\SignLanguageRecognizeWithDTW\\DTW_Right_Module\\" + moduleFileName;
 		else
 			return 0;
 	}

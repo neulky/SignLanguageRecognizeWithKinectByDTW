@@ -79,10 +79,10 @@ float DTWDistanceFun(point * a, int I, point * b, int J,int r)   //通过DTW算法计
 	return dtw_middle_matrix[I-1][J-1];
 }
 
-int DTWOptimalPath(point * M,int I,point * T,int J ,float threshold,int turn,int hand_flag) //寻找并显示最短路径 生成最新模板
+int DTWOptimalPath(point * M,int I,point * T,int J ,float threshold,int turn,int hand_flag,string fileName) //寻找并显示最短路径 生成最新模板
 {
 	float DTWDistanceFun(point * a, int I, point * b, int J,int r);
-	int DTWUpdataModule(point * new_module, int newModuleFrameNum, int hand_flag);
+	int DTWUpdataModule(point * new_module, int newModuleFrameNum, int hand_flag, string fileName);
 	point module[MAXFRAME] = {};
 	float dist;
 	int i, j;
@@ -147,11 +147,11 @@ int DTWOptimalPath(point * M,int I,point * T,int J ,float threshold,int turn,int
 	}
 	if (hand_flag == LEFT_HAND_FLAG)
 	{
-		DTWUpdataModule(module, I, LEFT_HAND_FLAG);
+		DTWUpdataModule(module, I, LEFT_HAND_FLAG, fileName);
 	}
 	if (hand_flag == RIGHT_HAND_FLAG)
 	{
-		DTWUpdataModule(module, I, RIGHT_HAND_FLAG);
+		DTWUpdataModule(module, I, RIGHT_HAND_FLAG, fileName);
 	}
 	for (int i = I-1; i >= 0; i--)
 	{
@@ -172,16 +172,16 @@ int DTWOptimalPath(point * M,int I,point * T,int J ,float threshold,int turn,int
 * int newModuleFrameNum模板的帧数
 * int hand_flag 左右手标志，分别存入不同的文件夹下
 */
-int DTWUpdataModule(point * new_module, int newModuleFrameNum, int hand_flag)
+int DTWUpdataModule(point * new_module, int newModuleFrameNum, int hand_flag, string fileName)
 {
 	string sourceFile;
 	ofstream outfile;
 	string moduleDataStr;
 	if (hand_flag == LEFT_HAND_FLAG)
-		sourceFile = "G://GitHubKinect//SignLanguageRecognizeWithDTW//DTW_Left_Module//wave.txt";
+		sourceFile = "G:\\GitHubKinect\\SignLanguageRecognizeWithDTW\\DTW_Left_Module\\" + fileName;
 	else{
 		if (hand_flag == RIGHT_HAND_FLAG)
-			sourceFile = "G://GitHubKinect//SignLanguageRecognizeWithDTW//DTW_Right_Module//wave.txt";
+			sourceFile = "G:\\GitHubKinect\\SignLanguageRecognizeWithDTW\\DTW_Right_Module\\" + fileName;
 		else
 			return 0;
 	}

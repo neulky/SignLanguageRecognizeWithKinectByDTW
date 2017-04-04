@@ -64,7 +64,6 @@ int AcquireKinectData(point kinectDataPoint[][MAXFRAME], int* kinectFrameCount)
 	{
 		if (WaitForSingleObject(skeletonEvent, INFINITE) == 0)
 			extrudeRightHandPosition(skeletonEvent, HandPosition);      //修改数组HandPosition,及修改左右手坐标
-		//cout << "(" << RightHandPosition.x << "," << RightHandPosition.y << ")" << endl;
 
 		if (WaitForSingleObject(depthEvent, 0) == 0)
 		{
@@ -108,7 +107,7 @@ int AcquireKinectData(point kinectDataPoint[][MAXFRAME], int* kinectFrameCount)
 				kinectDataPoint[LEFT_HAND_FLAG][kinectFrameCount[LEFT_HAND_FLAG]].y = HandPosition[LEFT_HAND_FLAG].y;
 
 				cout <<"Left: "<< "(" << kinectDataPoint[LEFT_HAND_FLAG][kinectFrameCount[LEFT_HAND_FLAG]].x << "," << kinectDataPoint[LEFT_HAND_FLAG][kinectFrameCount[LEFT_HAND_FLAG]].y << ")" << endl;
-				//cout << "(" << kinectDataPoint[LEFT_HAND_FLAG][frameCount].x << "," << kinectDataPoint[LEFT_HAND_FLAG][frameCount].y << ")" << endl;
+
 				kinectFrameCount[LEFT_HAND_FLAG]++;
 			}	
 		}
