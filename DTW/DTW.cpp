@@ -16,12 +16,13 @@ float DTWDistanceFun(point * a, int I, point * b, int J,int r)   //通过DTW算法计
 	memset(dtw_distance, 0, sizeof(dtw_distance));
 	memset(dtw_middle_matrix, DTWVERYBIG, sizeof(dtw_middle_matrix));
 
+
 	for (int i = 0; i < I; i++)
 	{
 		for (int j = 0; j < J; j++)
 		{
 			dtw_distance[i][j] = sqrt((a[i].x - b[j].x)*(a[i].x - b[j].x) + (a[i].y - b[j].y)*(a[i].y - b[j].y));
-			
+			dtw_middle_matrix[i][j] = DTWVERYBIG;
 		}
 	}
 
@@ -35,6 +36,8 @@ float DTWDistanceFun(point * a, int I, point * b, int J,int r)   //通过DTW算法计
 	}*/
 
 	int r2 = r + ABS(I - J);      //匹配距离   注意r2的值 不能越界 必须小于I J
+	
+	//int r2 = r;
 
 	dtw_middle_matrix[0][0] = dtw_distance[0][0];
 
@@ -67,14 +70,14 @@ float DTWDistanceFun(point * a, int I, point * b, int J,int r)   //通过DTW算法计
 		}
 	}
 	
-	/*for (int i = I - 1; i >= 0; i--)
+	for (int i = I - 1; i >= 0; i--)
 	{
 		for (int j = 0; j < J; j++)
 		{
-			cout << setw(5) << setprecision(3) << dtw_middle_matrix[i][j];   //输出点之间的距离矩阵
+			cout << setw(7) << setprecision(3) << dtw_middle_matrix[i][j];   //输出点之间的距离矩阵
 		}
 		cout << endl;
-	}*/
+	}
 
 	return dtw_middle_matrix[I-1][J-1];
 }

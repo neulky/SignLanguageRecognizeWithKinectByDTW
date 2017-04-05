@@ -76,14 +76,14 @@ string recognize(point source_data[][MAXFRAME], int* sourceFrameNum)
 			cout << "左手未参加该手语" << endl;
 		else
 		{
-			DTWOptimalPath(left_hand_module_point, leftHandFrameNum, source_data[LEFT_HAND_FLAG], sourceFrameNum[LEFT_HAND_FLAG], MATCHTHRESHOLD, 1, LEFT_HAND_FLAG, successModuleName);
+			DTWOptimalPath(left_hand_module_point, leftHandFrameNum, source_data[LEFT_HAND_FLAG], sourceFrameNum[LEFT_HAND_FLAG], MATCHTHRESHOLD, 1000, LEFT_HAND_FLAG, successModuleName);
 		}
 
 		if (sourceFrameNum[RIGHT_HAND_FLAG] == 0)
 			cout << "右手未参加该手语" << endl;
 		else
 		{
-			DTWOptimalPath(right_hand_module_point, rightHandFrameNum, source_data[RIGHT_HAND_FLAG], sourceFrameNum[RIGHT_HAND_FLAG], MATCHTHRESHOLD, 1, RIGHT_HAND_FLAG, successModuleName);
+			DTWOptimalPath(right_hand_module_point, rightHandFrameNum, source_data[RIGHT_HAND_FLAG], sourceFrameNum[RIGHT_HAND_FLAG], MATCHTHRESHOLD, 1000, RIGHT_HAND_FLAG, successModuleName);
 		}
 	}
 

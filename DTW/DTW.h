@@ -12,7 +12,7 @@ using namespace std;
 #define MAXFRAME 1000      //采集数据的最大帧数
 #define POINT_NUM_EACH_FRAME 2 //每帧点的个数
 #define DTWVERYBIG 100000.0  //表示无穷大
-#define MATCHRANGE 10  //匹配范围
+#define MATCHRANGE 3  //匹配范围
 #define LEFT_HAND_FLAG 0
 #define RIGHT_HAND_FLAG 1
 #define HAND_COUNT 2
