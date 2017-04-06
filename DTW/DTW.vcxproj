@@ -83,11 +83,13 @@
     <ClCompile Include="DTW.cpp" />
     <ClCompile Include="GestureDetector.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Speech.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AcquireKinectData.h" />
     <ClInclude Include="DTW.h" />
     <ClInclude Include="GestureDetector.h" />
+    <ClInclude Include="Speech.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
