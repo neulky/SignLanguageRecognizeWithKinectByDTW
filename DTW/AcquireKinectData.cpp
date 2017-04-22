@@ -365,11 +365,11 @@ int extrudeRightHandPosition(HANDLE &skeletonEvent, point * HandPoint)  //Í¨¹ýHa
 
 	point rightHandPoint[NUI_SKELETON_COUNT] = {};
 	point leftHandPoint[NUI_SKELETON_COUNT] = {}; 
-
+	
 	float Right_Hand_fx, Right_Hand_fy;
 	float Left_Hand_fx, Left_Hand_fy;
 	float Hip_Center_fx, Hip_Center_fy;
-
+	
 	int flag = 0;
 	for (int i = 0; i < NUI_SKELETON_COUNT; i++)
 	{

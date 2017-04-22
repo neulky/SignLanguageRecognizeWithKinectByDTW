@@ -80,6 +80,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AcquireKinectData.cpp" />
+    <ClCompile Include="Client.cpp" />
     <ClCompile Include="DTW.cpp" />
     <ClCompile Include="GestureDetector.cpp" />
     <ClCompile Include="main.cpp" />
@@ -87,6 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AcquireKinectData.h" />
+    <ClInclude Include="Client.h" />
     <ClInclude Include="DTW.h" />
     <ClInclude Include="GestureDetector.h" />
     <ClInclude Include="Speech.h" />

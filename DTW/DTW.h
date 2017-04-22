@@ -17,7 +17,7 @@ using namespace std;
 #define RIGHT_HAND_FLAG 1
 #define HAND_COUNT 2
 #define MAX_MODULE_NUM 100  //最大模型个数
-#define MATCHTHRESHOLD 1000.0
+#define MATCHTHRESHOLD 10.0
 
 #define MIN(a,b) ((a)<(b)?(a):(b))
 #define ABS(a) ((a)>0?(a):(-(a)))

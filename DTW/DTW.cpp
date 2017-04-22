@@ -70,14 +70,14 @@ float DTWDistanceFun(point * a, int I, point * b, int J,int r)   //通过DTW算法计
 		}
 	}
 	
-	for (int i = I - 1; i >= 0; i--)
-	{
-		for (int j = 0; j < J; j++)
-		{
-			cout << setw(7) << setprecision(3) << dtw_middle_matrix[i][j];   //输出点之间的距离矩阵
-		}
-		cout << endl;
-	}
+	//for (int i = I - 1; i >= 0; i--)
+	//{
+	//	for (int j = 0; j < J; j++)
+	//	{
+	//		cout << setw(7) << setprecision(3) << dtw_middle_matrix[i][j];   //输出点之间的距离矩阵
+	//	}
+	//	cout << endl;
+	//}
 
 	return dtw_middle_matrix[I-1][J-1];
 }
@@ -181,10 +181,10 @@ int DTWUpdataModule(point * new_module, int newModuleFrameNum, int hand_flag, st
 	ofstream outfile;
 	string moduleDataStr;
 	if (hand_flag == LEFT_HAND_FLAG)
-		sourceFile = "G:\\GitHubKinect\\SignLanguageRecognizeWithDTW\\DTW_Left_Module\\" + fileName;
+		sourceFile = "G:\\GitHubKinect\\SignLanguageRecognizeWithDTW\\DTW_Left_Module\\test\\" + fileName;
 	else{
 		if (hand_flag == RIGHT_HAND_FLAG)
-			sourceFile = "G:\\GitHubKinect\\SignLanguageRecognizeWithDTW\\DTW_Right_Module\\" + fileName;
+			sourceFile = "G:\\GitHubKinect\\SignLanguageRecognizeWithDTW\\DTW_Right_Module\\test\\" + fileName;
 		else
 			return 0;
 	}

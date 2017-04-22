@@ -30,6 +30,9 @@
     <ClCompile Include="Speech.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Client.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DTW.h">
@@ -42,6 +45,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Speech.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Client.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
