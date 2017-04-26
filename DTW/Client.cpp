@@ -39,11 +39,16 @@ void Client::sendMessage(point sequence[], int count)
 }
 
 //接收数据
-void Client::recvMessage()
+string Client::recvMessage()
 {
+	string result;
 	char receiveMessage[50] = {};
-	recv(sockClient, receiveMessage, 100, 0);
-	printf("%s", receiveMessage);
+	recv(sockClient, receiveMessage, 50, 0);
+	for (int i = 0; receiveMessage[i] != '\0'; i++)
+	{
+		result += receiveMessage[i];
+	}
+	return result;
 }
 
 //关闭socket

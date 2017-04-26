@@ -14,7 +14,7 @@ class Client
 public:
 	void Connect();
 	void sendMessage(point sequence[], int count);
-	void recvMessage();
+	string recvMessage();
 	void Close();
 };
 
