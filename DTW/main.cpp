@@ -20,7 +20,8 @@ int main()
 	cout << result << endl;                //输出结果
 	data_client->Close();         //关闭连接
 
-	//string temp = "_0.txt";
+	ResultSpeech(result);
+	//string temp = "_9.txt";
 
     //DTWUpdataModule(kinectDataPointSeq[LEFT_HAND_FLAG], kinectFrameCount[LEFT_HAND_FLAG], LEFT_HAND_FLAG, temp);     //第一次将采到数据存入模板文件当中
 	//DTWUpdataModule(kinectDataPointSeq[RIGHT_HAND_FLAG], kinectFrameCount[RIGHT_HAND_FLAG], RIGHT_HAND_FLAG, temp);     //第一次将采到数据存入模板文件当中

@@ -10,7 +10,7 @@ using namespace std;
 #define DTWSEQ1 5
 #define DTWSEQ2 6
 #define MAXFRAME 1000      //采集数据的最大帧数
-#define POINT_NUM_EACH_FRAME 2 //每帧点的个数
+#define POINT_NUM_EACH_FRAME 3 //每帧点的个数
 #define DTWVERYBIG 100000.0  //表示无穷大
 #define MATCHRANGE 3  //匹配范围
 #define LEFT_HAND_FLAG 0
@@ -25,6 +25,7 @@ using namespace std;
 struct point{
 	float x;
 	float y;
+	float z;
 };
 
 float DTWDistanceFun(point * a, int I, point * b, int J, int r);  //通过DTW算法计算最短路径长度

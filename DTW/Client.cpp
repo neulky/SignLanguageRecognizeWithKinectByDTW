@@ -28,7 +28,8 @@ void Client::sendMessage(point sequence[], int count)
 		switch (j)
 		{
 		case 0: sendStr += to_string(sequence[i].x); sendStr += ','; break;
-		case 1: sendStr += to_string(sequence[i].y); break;
+		case 1: sendStr += to_string(sequence[i].y); sendStr += ','; break;
+		case 2: sendStr += to_string(sequence[i].z); break;
 		default: break;
 		}
 		sendStr += '@';

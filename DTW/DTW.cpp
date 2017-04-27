@@ -181,10 +181,10 @@ int DTWUpdataModule(point * new_module, int newModuleFrameNum, int hand_flag, st
 	ofstream outfile;
 	string moduleDataStr;
 	if (hand_flag == LEFT_HAND_FLAG)
-		sourceFile = "G:\\GitHubKinect\\SignLanguageRecognizeWithDTW\\DTW_Left_Module\\test\\" + fileName;
+		sourceFile = "G:\\GitHubKinect\\HMM_Model_3\\Right_Train_Data\\2\\" + fileName;
 	else{
 		if (hand_flag == RIGHT_HAND_FLAG)
-			sourceFile = "G:\\GitHubKinect\\SignLanguageRecognizeWithDTW\\DTW_Right_Module\\test\\" + fileName;
+			sourceFile = "G:\\GitHubKinect\\HMM_Model_3\\Right_Train_Data\\2\\" + fileName;
 		else
 			return 0;
 	}
@@ -198,7 +198,9 @@ int DTWUpdataModule(point * new_module, int newModuleFrameNum, int hand_flag, st
 			switch (j)
 			{
 			case 0: moduleDataStr += to_string(new_module[i].x); moduleDataStr += ','; break;
-			case 1: moduleDataStr += to_string(new_module[i].y); break;
+			case 1: moduleDataStr += to_string(new_module[i].y); moduleDataStr += ','; break;
+			case 2: moduleDataStr += to_string(new_module[i].z); break;
+
 			default: 
 				break;
 			}
